@@ -9,9 +9,9 @@
     {
       "name": "bootstrap",
       "source": "./plugins/bootstrap",
-      "description": "Interactive project scaffolder. Asks about stack + architecture + rigor, writes a tailored .claude/ + docs/ + workflow setup.",
-      "version": "0.2.0",
-      "tags": ["scaffold", "project-init", "discipline", "spec-driven", "tdd", "hexagonal"]
+      "description": "Two scaffolders: /bootstrap-project for empty dirs + /retrofit-project for existing projects (auto-detects stack, merges discipline additively).",
+      "version": "0.4.0",
+      "tags": ["scaffold", "project-init", "retrofit", "discipline", "spec-driven", "tdd", "hexagonal"]
     }
   ]
 }

@@ -94,14 +94,16 @@ If the SSH-form clone fails with "host key not in known_hosts", use the HTTPS fo
 /plugin marketplace add https://github.com/aleburrascano/claude-discipline-template
 ```
 
-### Use
+### Use — two flows depending on whether the target dir is empty or existing
+
+#### Empty dir → `/bootstrap-project`
 
 ```
 cd ~/projects/my-new-thing      # empty directory
-/bootstrap-project              # plugin's only user-facing skill — kicks off Q&A
+/bootstrap-project              # Q&A → full scaffold
 ```
 
-The skill asks about:
+Asks about:
 
 1. Project name + description
 2. Backend language — Python · TypeScript/Node · Go · Rust · None
@@ -110,7 +112,30 @@ The skill asks about:
 5. Architecture — Hexagonal · Layered · Vertical-slice · None/manual
 6. Rigor level — Maximum (TDD-Guard blocks) · Pragmatic · Lean
 
-Then it writes a `.claude/` + `docs/` scaffold tailored to your answers.
+Writes a `.claude/` + `docs/` scaffold tailored to your answers.
+
+#### Existing project → `/retrofit-project`
+
+```
+cd ~/projects/my-existing-thing
+/retrofit-project               # auto-detects stack, asks remaining, merges additively
+```
+
+Auto-detects from your files:
+- **Project name + description** ← `package.json` / `pyproject.toml` / etc.
+- **Backend lang + framework** ← deps (`fastapi`, `next`, `expo`, …) + lockfile shapes
+- **Test framework + linter + typechecker** ← `jest.config.*`, `vitest.config.*`, `eslint.config.*`, `pyproject.toml[tool.{ruff,mypy,pytest}]`
+- **Package manager** ← `pnpm-lock.yaml` / `yarn.lock` / `package-lock.json` / `uv.lock` / `poetry.lock`
+- **Architecture hint** ← directory shape (`domain/`+`application/`+`adapters/` → hexagonal, `features/` slices → vertical-slice, etc.)
+- **Database hint** ← deps (`pg`, `@supabase/supabase-js`, `mongoose`, `prisma`, …)
+
+Then asks only what can't be detected (architecture confirmation + rigor level) and **merges files additively**:
+
+- **Missing** files → written.
+- **Identical** files → skipped.
+- **Differing** files → per-file prompt `[m]erge · [s]kip · [r]eplace (with backup) · [k]eep both as .new`.
+- Never modifies `package.json`, `pyproject.toml`, `tsconfig.json`, or framework configs.
+- Backs up overwritten files to `.claude-retrofit-backup-<timestamp>/`.
 
 ### Coverage matrix (v0.3.0)
 

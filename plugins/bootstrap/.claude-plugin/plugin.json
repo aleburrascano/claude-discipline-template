@@ -1,7 +1,7 @@
 {
   "name": "claude-discipline",
-  "description": "Interactive Claude-Code-first project scaffold. Asks about your stack + architecture + rigor level, then writes a tailored .claude/ + docs/ + workflow setup with zero TODO stubs for covered stacks.",
-  "version": "0.2.0",
+  "description": "Two interactive Claude-Code-first scaffolders: /bootstrap-project (empty dir → full discipline) and /retrofit-project (existing dir → auto-detects stack + merges discipline additively without overwriting).",
+  "version": "0.4.0",
   "author": {
     "name": "aleburrascano"
   },
