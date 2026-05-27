@@ -1,0 +1,114 @@
+# external-entities.txt — Layer 6b trigger tokens for claim-audit.sh
+#
+# One token per line. Lines starting with # are comments. Case-insensitive matching.
+# A sentence containing any of these tokens AND a content claim AND no [VERIFIED:...]
+# / [INFERRED] / [ASSUMED] tag triggers Tier B warn (additionalContext re-verify nudge).
+#
+# Add new entries when a hallucination references something not yet in this list.
+# Pair with ~/.claude/logs/claim-near-miss.jsonl review.
+
+# --- Generic terms that imply external knowledge ---
+# Kept distinctive enough to imply "this is a research claim, not working code":
+API
+APIs
+SDK
+SDKs
+# Removed (too generic in everyday technical English; combined with content
+# verbs they false-fired on Claude's own working notes about its own files):
+#   library, libraries, package, packages, framework, frameworks,
+#   service, services, endpoint, endpoints, dependency, dependencies,
+#   crate, crates, gem, gems, plugin, plugins, extension, extensions
+# Add specific package/crate/gem names below if they need entity-tagging.
+
+# --- Concrete vendors / platforms ---
+youtube
+github
+gitlab
+bitbucket
+npm
+pip
+pypi
+cargo
+rustup
+maven
+gradle
+homebrew
+chocolatey
+apt
+yum
+docker
+kubernetes
+terraform
+ansible
+
+# --- Cloud providers ---
+aws
+azure
+gcp
+cloudflare
+vercel
+netlify
+heroku
+digitalocean
+fly.io
+railway
+
+# --- Common service vendors ---
+stripe
+twilio
+sendgrid
+mailgun
+shopify
+square
+plaid
+auth0
+clerk
+supabase
+firebase
+mongodb
+postgres
+postgresql
+mysql
+redis
+elasticsearch
+
+# --- AI / LLM vendors ---
+anthropic
+openai
+google
+gemini
+mistral
+cohere
+huggingface
+replicate
+ollama
+
+# --- Frameworks (named) ---
+react
+nextjs
+vue
+nuxt
+svelte
+angular
+django
+flask
+fastapi
+rails
+express
+fastify
+nestjs
+laravel
+spring
+
+# --- Standards / protocols ---
+oauth
+oauth2
+openid
+saml
+jwt
+graphql
+grpc
+rest
+websocket
+webhook
+webhooks

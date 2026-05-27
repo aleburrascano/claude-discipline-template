@@ -1,0 +1,57 @@
+{
+  "_doc": "Starter settings.json for ~/.claude/. Copy to ~/.claude/settings.json. Hook paths use $HOME so they're portable. Customize enabledPlugins to your taste — the entries below are NOT installed by this script, just listed as suggestions you can opt into via /plugin marketplace add + /plugin install.",
+
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/thinking-level.sh" },
+          { "type": "command", "command": "$HOME/.claude/hooks/context-threshold.sh" },
+          { "type": "command", "command": "$HOME/.claude/hooks/source-prefetch-reminder.sh" },
+          { "type": "command", "command": "$HOME/.claude/hooks/response-discipline-reminder.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/claim-audit.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/typecheck-changed.sh" },
+          { "type": "command", "command": "$HOME/.claude/hooks/test-changed.sh" }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/post-write-langcheck.sh" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "$HOME/.claude/hooks/session-common-ground.sh" }
+        ]
+      }
+    ]
+  },
+
+  "_doc_enabled_plugins": "List of plugins you've installed via /plugin install. Leave empty initially; populate as you adopt plugins.",
+  "enabledPlugins": {},
+
+  "_doc_extra_marketplaces": "Custom plugin marketplaces beyond Anthropic's. Add entries via /plugin marketplace add — this section auto-populates.",
+  "extraKnownMarketplaces": {},
+
+  "autoUpdatesChannel": "latest",
+  "effortLevel": "max"
+}

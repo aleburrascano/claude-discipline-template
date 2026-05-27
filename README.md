@@ -1,108 +1,148 @@
 # claude-discipline
 
-A **Claude Code plugin** that interactively scaffolds production-grade discipline into a new project: skills, agents, hooks, path-scoped rules, workflows, doc templates, ADRs — all tailored to your specific stack + architecture + rigor level.
+Two distribution paths for a single coherent Claude-Code-first development discipline:
 
-You answer ~6 questions in chat; the plugin writes ~50–80 files customized to your picks. No TODO stubs for covered stacks.
+1. **Global (`~/.claude/`) overlay** — universal hallucination-reduction + context-engineering hooks/commands/CLAUDE.md that load on **every** session in **every** project. Install via `bash install-global.sh`.
+2. **Project bootstrap plugin** — interactive scaffolder that asks about your stack + architecture + rigor, then writes a tailored `.claude/` + `docs/` setup for **a single new project**. Install via `/plugin marketplace add` then `/plugin install`.
 
-## Install
+The two layers compose:
+
+- **Global** handles *how Claude works*: citation discipline, common-ground at session start, claim audit at session end, multi-language static check on every Write, context-utilization warnings, thinking-level routing.
+- **Project plugin** handles *what this codebase is*: chosen architecture (hexagonal / layered / vertical-slice), stack-specific rules (Python / TypeScript), feature workflow (spec → plan → TDD → verify → 6-aspect review → compound), 13 skills, 10–13 subagents, 12 hooks.
+
+Neither replaces the other.
+
+---
+
+## Path 1 — Global `~/.claude/` overlay
+
+The overlay that catches hallucinations and enforces citations across every Claude Code session.
+
+### Install
+
+```bash
+git clone https://github.com/aleburrascano/claude-discipline-template.git
+cd claude-discipline-template
+bash install-global.sh          # Linux / macOS / Git Bash on Windows
+# or:
+.\install-global.ps1            # PowerShell on Windows
+```
+
+The installer:
+
+- Backs up your existing `~/.claude/CLAUDE.md`, `~/.claude/RTK.md`, `~/.claude/hooks/`, `~/.claude/commands/` per-file to `~/.claude/backup-<timestamp>/` (only files that would be overwritten).
+- For each file: **missing** → copies and reports "added"; **identical** → reports "identical"; **differs** → shows a diff and asks `[i]nstall · [s]kip · [v]iew full diff · [k]eep both as .new`.
+- Never touches private dirs: `projects/`, `sessions/`, `handoffs/`, `plans/`, `file-history/`, `shell-snapshots/`, `logs/`, `cache/`, `backups/`, `session-env/`, `tdd-guard/`, `chrome/`, `downloads/`, `ide/`, or `.credentials.json`.
+- Writes `settings.json.template` rather than `settings.json` — you merge it into yours manually, so your plugin enablements aren't overwritten.
+
+### What gets installed (23 files)
+
+- `CLAUDE.md` — universal 4-principles (Think · Simple · Surgical · Goal-Driven) + sacred-tests + accountability contract + brevity
+- `RTK.md` — Rust Token Killer proxy reference (optional dependency)
+- `settings.json.template` — starter hook wiring; merge into your real `settings.json`
+- `hooks/` — 16 hooks across 10 defense layers (claim-audit, multi-lang langcheck, common-ground, citation reminder, context-threshold, etc.)
+- `commands/` — 5 custom commands (`/common-ground`, `/grill-me`, `/handoff`, `/setup-project-defenses`, `/verify`)
+
+See [`global/README.md`](global/README.md) for the layer-by-layer breakdown.
+
+### Validate after install
+
+```bash
+bash ~/.claude/hooks/test-claim-audit.sh    # ~30 synthetic test cases
+bash ~/.claude/hooks/test-langcheck.sh      # multi-language hook validation
+```
+
+Both should report `PASS` on every case.
+
+---
+
+## Path 2 — Project bootstrap plugin
+
+Interactive scaffolder. Asks ~6 questions, writes ~50–80 files tailored to your picks. No TODO stubs for covered stacks.
+
+### Install
 
 ```
 # In Claude Code, in any directory:
 /plugin marketplace add aleburrascano/claude-discipline-template
-/plugin install claude-discipline@aleburrascano/claude-discipline-template
+/plugin install bootstrap@claude-discipline
 ```
 
-## Use
+If the SSH-form clone fails with "host key not in known_hosts", use the HTTPS form:
 
 ```
-cd ~/projects/my-new-thing      # empty directory where the new project will live
+/plugin marketplace add https://github.com/aleburrascano/claude-discipline-template
+```
+
+### Use
+
+```
+cd ~/projects/my-new-thing      # empty directory
 /bootstrap-project              # plugin's only user-facing skill — kicks off Q&A
 ```
 
-The skill asks you about:
+The skill asks about:
 
-1. **Project name + description** (free text)
-2. **Backend language** — Python · TypeScript/Node · Go · Rust · None
-3. **Frontend** — Expo · Next.js · Vite + React · None
-4. **Database** — Postgres · SQLite · MongoDB · None / decide later
-5. **Architecture pattern** — Hexagonal · Layered · Vertical-slice · None / manual
-6. **Rigor level** — Maximum (TDD-Guard blocks) · Pragmatic (TDD-Guard warns) · Lean (no TDD-Guard)
+1. Project name + description
+2. Backend language — Python · TypeScript/Node · Go · Rust · None
+3. Frontend — Expo · Next.js · Vite + React · None
+4. Database — Postgres · SQLite · MongoDB · decide-later
+5. Architecture — Hexagonal · Layered · Vertical-slice · None/manual
+6. Rigor level — Maximum (TDD-Guard blocks) · Pragmatic · Lean
 
-Then it writes:
+Then it writes a `.claude/` + `docs/` scaffold tailored to your answers.
 
-- `CLAUDE.md` (project constitution, tailored to your architecture)
-- `.claude/{settings.json, skill-rules.json}` (hooks wired to your rigor level)
-- `.claude/rules/` (vault-consultation + tests, plus stack-specific + architecture-specific rules)
-- `.claude/skills/` (13 generic skills: feature-spec, feature-plan, TDD, verify, 6-aspect review, ADR, common-ground, brainstorm-tech-choice, compound-learning, git-commit, audit-docs, doc-freshness, nested-CLAUDE.md updater)
-- `.claude/agents/` (10 generic reviewers + stack-specific expert if applicable + domain-modeler if architecture is hexagonal/DDD)
-- `.claude/hooks/` (12 hooks; typecheck/lint/test filled in with your stack's commands — `pnpm exec tsc`, `uv run mypy`, etc.)
-- `.husky/{commit-msg, pre-commit}` (commit-msg strips `Co-Authored-By: Claude` lines; pre-commit blocks secrets)
-- `commitlint.config.js` (with scope-enum prepopulated for your chosen architecture's layer names)
-- `docs/architecture.md` (real content reflecting your architecture choice, not a stub)
-- `docs/adr/0001-<arch>.md` (Accepted, with rationale + alternatives + vault references)
-- `docs/adr/000N-deferred-<topic>.md` (Proposed, for any "decide-later" choices like DB or auth)
-- `docs/{ubiquitous-language, claude-md-map, workflows/{new-feature,bug-fix,refactor}, specs/_template, adr/_template, solutions/{_template,INDEX.md}, brainstorms/, notes/}` (the full docs scaffold)
+### Coverage matrix (v0.3.0)
 
-After it finishes, run `git init` (or it does for you), `pnpm install` to wire husky, and start your first feature with `/feature-spec`.
+| Stack × Arch | Hexagonal | Layered | Vertical-slice | None/manual |
+|---|---|---|---|---|
+| Python | ✅ Full | ⚠️ ADR-only | ⚠️ ADR-only | ✅ Full |
+| TypeScript | ✅ Full | ⚠️ ADR-only | ⚠️ ADR-only | ✅ Full |
+| Go / Rust | 🚧 Stubs | 🚧 | 🚧 | 🚧 |
 
-## What this plugin distributes (top-level)
+**Full** = stack-specific rules + language-expert subagent + filled-in hooks (no TODOs) + tailored ADR.
+**ADR-only** = generic discipline + arch ADR; hook stubs need filling.
+**Stubs** = generic discipline + TODO stubs you fill in for your stack.
+
+---
+
+## Repo layout
 
 ```
 claude-discipline-template/
+├── README.md                          ← this file
+├── LICENSE                            ← MIT
+├── .gitignore
+├── install-global.sh                  ← installs Path 1 (Linux/macOS/Git-Bash)
+├── install-global.ps1                 ← installs Path 1 (PowerShell)
 ├── .claude-plugin/
-│   └── plugin.json                  # plugin manifest
-├── skills/
-│   └── bootstrap-project/SKILL.md   # the one user-facing skill; runs Q&A then writes
-├── content/                         # raw templates the bootstrap skill reads from
-│   ├── core/                        # always-written discipline (61 files)
-│   ├── stacks/
-│   │   ├── typescript/              # TS rules + expert agent + filled-in hooks
-│   │   └── python/                  # Python rules + expert agent + filled-in hooks
-│   └── architectures/
-│       ├── hexagonal/               # layer rules + domain-modeler agent + ADR-0001 + architecture.md
-│       ├── layered/                 # ADR-0001 + (TODO: layer rules)
-│       └── vertical-slice/          # ADR-0001 + (TODO: layer rules)
-├── README.md, LICENSE, .gitignore
+│   └── marketplace.json               ← declares the "bootstrap" plugin at plugins/bootstrap/
+├── plugins/
+│   └── bootstrap/                     ← Path 2 — the project-bootstrap plugin
+│       ├── .claude-plugin/plugin.json
+│       ├── skills/bootstrap-project/SKILL.md
+│       └── content/                   ← raw templates the skill reads at runtime
+│           ├── core/                  ← always-written (61 files)
+│           ├── stacks/{typescript,python}/
+│           └── architectures/{hexagonal,layered,vertical-slice}/
+└── global/                            ← Path 1 — the ~/.claude/ overlay
+    ├── README.md                      ← what's inside + which defense layer each hook serves
+    ├── CLAUDE.md                      ← universal discipline
+    ├── RTK.md
+    ├── settings.json.template
+    ├── hooks/                         (16 files)
+    └── commands/                      (5 files)
 ```
 
-## Coverage matrix (v0.2)
+## Both paths recommended for new collaborators
 
-| Stack \ Arch | Hexagonal | Layered | Vertical-slice | None / manual |
-|---|---|---|---|---|
-| **Python** | ✅ Full | ⚠️ Partial (ADR only) | ⚠️ Partial (ADR only) | ✅ Full |
-| **TypeScript** | ✅ Full | ⚠️ Partial (ADR only) | ⚠️ Partial (ADR only) | ✅ Full |
-| **Go** | 🚧 Stubs only | 🚧 | 🚧 | 🚧 |
-| **Rust** | 🚧 Stubs only | 🚧 | 🚧 | 🚧 |
+If a teammate is starting fresh:
 
-**Full** = stack-specific rules + language-expert subagent + filled-in hooks (no TODOs) + tailored ADR.
-**Partial** = ADR + generic discipline; some hook stubs remain.
-**Stubs only** = generic discipline + TODO stubs you fill in for your stack.
+1. Run `install-global.sh` to get the universal hooks + CLAUDE.md.
+2. Install the `bootstrap` plugin.
+3. For each new project: `cd <empty-dir> && /bootstrap-project`.
 
-Pull requests adding Go / Rust / more frontend frameworks welcome.
-
-## Universal coding discipline lives outside this plugin
-
-The four Karpathy principles, sacred-tests rule, verification ritual, cited-claim format, brevity, and knowledge-sources discipline belong in your **user-level** `~/.claude/CLAUDE.md`, not in any project.
-
-The plugin assumes you have that. If you don't: see the [Karpathy CLAUDE.md](https://github.com/forrestchang/andrej-karpathy-skills) as a starting point.
-
-## Why a plugin (not a bulk-copy script)
-
-The earlier version of this repo was a `bootstrap.sh` script that copied a fixed scaffold. Problem: the scaffold was either over-generic (every file ended with TODO stubs) or over-specific (full of altune-specific Expo + Python + hexagonal assumptions).
-
-The plugin asks first, generates second. You get:
-
-- **TS-specific hooks** wired with `pnpm exec tsc`, `pnpm exec eslint`, `pnpm exec jest` (not generic stubs).
-- **Python-specific hooks** wired with `uv run mypy`, `uv run ruff`, `uv run pytest`.
-- **Hexagonal**, **layered**, or **vertical-slice** architecture rules + ADR-0001, depending on what you picked. Not all three loaded as conflicting suggestions.
-- **Rigor-tailored** TDD-Guard: blocking, warning, or removed entirely.
-- **Deferred-decision ADRs** auto-written for choices you marked "decide later" (DB, auth, etc.), so you don't forget to come back to them.
-
-## Background
-
-Extracted from the [Altune](https://github.com/aleburrascano/altune) music-manager project (Expo + Python + hexagonal). The discipline + workflow patterns are the reusable core; the Altune-specific choices became the "TypeScript + Python + Hexagonal" path through this plugin.
-
-Universal coding-discipline patterns: drawn from the Claude-Code wiki MCP — Karpathy principles, spec-driven development, TDD with Claude, hooks-as-guardrails, 6-aspect parallel review, compound engineering. Architectural patterns: drawn from the software-architecture-design wiki MCP — SOLID, DDD, hexagonal, vertical-slice, Repository, DI.
+After they're set up, the discipline applies automatically — hooks fire, skills auto-suggest, citations are enforced.
 
 ## License
 

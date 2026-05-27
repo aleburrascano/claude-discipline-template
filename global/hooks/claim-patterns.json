@@ -1,0 +1,81 @@
+{
+  "_doc": "Pattern + threshold config for claim-audit.sh. Layers 1, 5, 5b, 6, 6b, 10. POSIX ERE syntax. Edit freely; the hook re-reads on every invocation.",
+
+  "tier_a_explicit_claim": {
+    "_doc": "Layer 1 Tier A. Explicit verb + concrete URL/path target. Hard block when no matching tool call exists.",
+    "patterns": [
+      "I (read|fetched|visited|reviewed|opened|browsed|loaded|inspected|examined|checked|consulted|scanned) (the )?(file |page |link |url |document |doc )?[\"'`]?(https?://[^[:space:]\"'`)<>]+|[A-Za-z0-9_./-]+\\.(md|ts|tsx|js|jsx|py|rs|go|rb|sh|json|yml|yaml|toml|html|css|scss|sql|txt))",
+      "I (went through|looked through|looked at|pulled up|pulled down) (the )?(file |page |link |url |document |doc )?[\"'`]?(https?://[^[:space:]\"'`)<>]+|[A-Za-z0-9_./-]+\\.(md|ts|tsx|js|jsx|py|rs|go|rb|sh|json|yml|yaml|toml|html|css|scss|sql|txt))",
+      "(according to|per) (the )?(docs?|file )?[\"'`]?(https?://[^[:space:]\"'`)<>]+|[A-Za-z0-9_./-]+\\.(md|ts|tsx|js|jsx|py|rs|go|rb|sh|json|yml|yaml|toml))",
+      "from (https?://[^[:space:]\"'`)<>]+)"
+    ]
+  },
+
+  "tier_b_content_claim": {
+    "_doc": "Layer 1 Tier B (legacy). Source-named content claims with adjacent verb. Used by Layer 6 only — for the loose verb check, see content_assertion_verbs.",
+    "patterns": [
+      "(https?://[^[:space:]\"'`)<>]+|[A-Za-z0-9_./-]+\\.(md|ts|tsx|js|jsx|py|rs|go|rb|sh|json|yml|yaml|toml)) (says|contains|states|shows|defines|exposes|declares|describes|covers|mentions|specifies|documents)",
+      "the (file|page|doc|README|spec|module|script) (says|contains|states|shows|defines|exposes|declares|describes|covers|mentions|specifies|documents)"
+    ]
+  },
+
+  "tier_c_speculative": {
+    "_doc": "Layer 1 Tier C. Speculative or self-reference. Skip / never block.",
+    "patterns": [
+      "(probably|likely|presumably|might|may|could|seems to|appears to|I'd expect|I would expect|I think|perhaps|possibly)",
+      "as (I|previously) (mentioned|noted|said|stated)",
+      "in (my|the) (last|previous|earlier) (response|message|turn)"
+    ]
+  },
+
+  "content_assertion_verbs": {
+    "_doc": "Tight verb list for Layer 6. Limited to verbs that read as claims about a source rather than as descriptions of what code does. Trimmed of overloaded verbs (allow/support/handle/contain/provide/require/return/accept/cap/limit/implement) — those false-fired on Claude's own working notes ('this hook handles X', 'the script supports Y'). Keep the list tight; expand only when a real assertion phrasing slips through.",
+    "regex": "\\b(says|state|states|shows|defines|expose|exposes|declares|describes|describe|covers|mentions|mention|specifies|specify|documents|document|enforce|enforces)\\b"
+  },
+
+  "verified_tag_pattern": {
+    "_doc": "Recognized inline citation tags. POSIX ERE form. Tool name restricted to a whitelist (Anthropic-defined + mcp__*) so documentation placeholders like [VERIFIED:tool@target] do not trigger Layer 5. Layers 5, 5b, 6, 10 all rely on these.",
+    "verified": "\\[VERIFIED:(Read|WebFetch|Grep|Glob|Bash|Edit|Write|MultiEdit|mcp__[A-Za-z0-9_]+__[A-Za-z0-9_]+)@[^]]+\\]",
+    "verified_with_anchor": "\\[VERIFIED:(Read|WebFetch|Grep|Glob|Bash|Edit|Write|MultiEdit|mcp__[A-Za-z0-9_]+__[A-Za-z0-9_]+)@[^]]+(#L[0-9]+([-:]L[0-9]+)?| (line|lines|section|sections|paragraph|chapter)( [0-9A-Za-z-]+)+)\\]",
+    "inferred": "\\[INFERRED\\]",
+    "assumed": "\\[ASSUMED\\]",
+    "conclusion": "\\[CONCLUSION from:[^]]+\\]",
+    "opinion": "\\[OPINION based on:[^]]+\\]"
+  },
+
+  "quote_thresholds": {
+    "_doc": "Layer 5b. Minimum length for a quoted snippet on a [VERIFIED:Tool@target] tag. Anchored quotes (line/section markers in the tag) are exempt.",
+    "min_chars": 30,
+    "min_words": 5
+  },
+
+  "conclusion_verbs": {
+    "_doc": "Layer 10. Sentences containing these phrases that follow 2+ [VERIFIED:...] tags must themselves be marked [CONCLUSION from:...] or [OPINION based on:...]. Tier B warn.",
+    "phrases": [
+      "\\btherefore\\b",
+      "\\bthus\\b",
+      "\\bhence\\b",
+      "\\bso (the|this|it)\\b",
+      "\\bthis means\\b",
+      "\\bin (summary|conclusion)\\b",
+      "\\bthe answer is\\b",
+      "\\bthe issue is\\b",
+      "\\bthe (best|right) (approach|fix|solution|option) is\\b",
+      "\\bI recommend\\b",
+      "\\byou should\\b",
+      "\\boverall\\b",
+      "\\bbottom line\\b"
+    ]
+  },
+
+  "user_quote_safelist": {
+    "_doc": "Layer 6 false-positive control. If the matched URL/path appears verbatim in the user's last message AND the sentence has no explicit claim verb (just an echo), treat as a quote. Tier A claims override (verb implies claim).",
+    "enabled": true
+  },
+
+  "near_miss_log": {
+    "_doc": "Layer 1 hallucination journal. Sentences that almost matched a Tier A/B pattern get appended here for periodic review.",
+    "path": "${HOME}/.claude/logs/claim-near-miss.jsonl",
+    "enabled": true
+  }
+}

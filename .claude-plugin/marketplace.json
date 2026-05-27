@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "claude-discipline",
+  "description": "Claude-Code-first project scaffolds + global hallucination-reduction discipline. Two distribution paths: (1) /plugin install bootstrap@... for an interactive project scaffolder; (2) bash install-global.sh for the universal ~/.claude/ overlay (CLAUDE.md, hooks, commands).",
+  "owner": {
+    "name": "aleburrascano"
+  },
+  "plugins": [
+    {
+      "name": "bootstrap",
+      "source": "./plugins/bootstrap",
+      "description": "Interactive project scaffolder. Asks about stack + architecture + rigor, writes a tailored .claude/ + docs/ + workflow setup.",
+      "version": "0.2.0",
+      "tags": ["scaffold", "project-init", "discipline", "spec-driven", "tdd", "hexagonal"]
+    }
+  ]
+}
