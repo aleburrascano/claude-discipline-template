@@ -36,6 +36,22 @@ echo
 
 mkdir -p "$TARGET"
 
+# Detect whether /dev/tty is actually openable. Set once; reuse in read prompts below.
+# Avoids the "/dev/tty: No such device or address" noise on systems without a controlling terminal.
+HAS_TTY=0
+if (exec </dev/tty) 2>/dev/null; then HAS_TTY=1; fi
+
+prompt_choice() {
+  # $1 = prompt string, $2 = name of var to assign, $3 = default if read fails
+  local prompt="$1" varname="$2" default="$3" val=""
+  if [[ "$HAS_TTY" -eq 1 ]]; then
+    read -r -p "$prompt" val </dev/tty || val="$default"
+  else
+    read -r -p "$prompt" val || val="$default"
+  fi
+  printf -v "$varname" '%s' "$val"
+}
+
 # ---------- counters ----------
 ADDED=()
 IDENTICAL=()
@@ -74,7 +90,7 @@ install_file() {
   echo
 
   while true; do
-    read -r -p "  [i]nstall (backup existing first) · [s]kip · [v]iew full diff · [k]eep both as .new: " choice </dev/tty
+    prompt_choice "  [i]nstall (backup existing first) · [s]kip · [v]iew full diff · [k]eep both as .new: " choice "s"
     case "$choice" in
       i|I)
         mkdir -p "$(dirname "$BACKUP_DIR/$rel")"
@@ -163,8 +179,29 @@ if [[ ${#INSTALLED[@]} -gt 0 ]]; then
   echo "Backups of overwritten files: $BACKUP_DIR"
 fi
 
+# ---------- offer RTK install ----------
 echo
-echo "Next steps:"
+echo "─── Optional: install RTK (Rust Token Killer) ───"
+echo "RTK is a CLI proxy that compresses Bash output before it reaches the LLM context"
+echo "(60–90% token savings). It wires into Claude Code via a PreToolUse:Bash hook."
+echo "Without RTK, everything still works — you just don't get the bash compression."
+echo
+prompt_choice "Install RTK now? (y/N): " rtk_choice "n"
+case "$rtk_choice" in
+  y|Y|yes|YES)
+    if [[ -f "$SCRIPT_DIR/install-rtk.sh" ]]; then
+      bash "$SCRIPT_DIR/install-rtk.sh"
+    else
+      echo "install-rtk.sh missing — run it separately later: bash install-rtk.sh"
+    fi
+    ;;
+  *)
+    echo "Skipped. Run later via:  bash install-rtk.sh"
+    ;;
+esac
+
+echo
+echo "─── Next steps ───"
 echo "  1. If you don't have ~/.claude/settings.json yet:"
 echo "       cp ~/.claude/settings.json.template ~/.claude/settings.json"
 echo "     Otherwise: open both, merge the 'hooks' section into your existing settings.json."
@@ -174,5 +211,5 @@ echo "       bash ~/.claude/hooks/test-claim-audit.sh"
 echo "       bash ~/.claude/hooks/test-langcheck.sh"
 echo
 echo "  3. Optional: install the bootstrap plugin for project-level scaffolding:"
-echo "       /plugin marketplace add aleburrascano/claude-discipline-template"
-echo "       /plugin install bootstrap@aleburrascano/claude-discipline-template"
+echo "       /plugin marketplace add https://github.com/aleburrascano/claude-discipline-template"
+echo "       /plugin install bootstrap@claude-discipline"

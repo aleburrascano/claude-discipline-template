@@ -153,7 +153,25 @@ if ($Installed.Count -gt 0) {
 }
 
 Write-Host ""
-Write-Host "Next steps:"
+Write-Host "--- Optional: install RTK (Rust Token Killer) ---" -ForegroundColor Cyan
+Write-Host "RTK is a CLI proxy that compresses Bash output before it reaches the LLM context"
+Write-Host "(60-90% token savings). It wires into Claude Code via a PreToolUse:Bash hook."
+Write-Host "Without RTK, everything still works -- you just don't get the bash compression."
+Write-Host ""
+$rtkChoice = Read-Host "Install RTK now? (y/N)"
+if ($rtkChoice -match '^(y|yes)$') {
+    $rtkScript = Join-Path $ScriptDir "install-rtk.ps1"
+    if (Test-Path $rtkScript) {
+        & $rtkScript
+    } else {
+        Write-Host "install-rtk.ps1 missing -- run it separately later: .\install-rtk.ps1"
+    }
+} else {
+    Write-Host "Skipped. Run later via:  .\install-rtk.ps1"
+}
+
+Write-Host ""
+Write-Host "--- Next steps ---" -ForegroundColor Cyan
 Write-Host "  1. If you don't have ~/.claude/settings.json yet:"
 Write-Host "       Copy-Item `$env:USERPROFILE\.claude\settings.json.template `$env:USERPROFILE\.claude\settings.json"
 Write-Host "     Otherwise: open both, merge the 'hooks' section into your existing settings.json."
@@ -163,5 +181,5 @@ Write-Host "       bash ~/.claude/hooks/test-claim-audit.sh"
 Write-Host "       bash ~/.claude/hooks/test-langcheck.sh"
 Write-Host ""
 Write-Host "  3. Optional: install the bootstrap plugin:"
-Write-Host "       /plugin marketplace add aleburrascano/claude-discipline-template"
-Write-Host "       /plugin install bootstrap@aleburrascano/claude-discipline-template"
+Write-Host "       /plugin marketplace add https://github.com/aleburrascano/claude-discipline-template"
+Write-Host "       /plugin install bootstrap@claude-discipline"

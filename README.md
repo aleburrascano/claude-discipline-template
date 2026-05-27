@@ -38,12 +38,32 @@ The installer:
 ### What gets installed (23 files)
 
 - `CLAUDE.md` — universal 4-principles (Think · Simple · Surgical · Goal-Driven) + sacred-tests + accountability contract + brevity
-- `RTK.md` — Rust Token Killer proxy reference (optional dependency)
+- `RTK.md` — Rust Token Killer proxy reference
 - `settings.json.template` — starter hook wiring; merge into your real `settings.json`
 - `hooks/` — 16 hooks across 10 defense layers (claim-audit, multi-lang langcheck, common-ground, citation reminder, context-threshold, etc.)
 - `commands/` — 5 custom commands (`/common-ground`, `/grill-me`, `/handoff`, `/setup-project-defenses`, `/verify`)
 
 See [`global/README.md`](global/README.md) for the layer-by-layer breakdown.
+
+### Optional: install RTK (Rust Token Killer)
+
+RTK is a separate CLI binary (not a Claude Code component) that compresses Bash output before it reaches the LLM context — **60–90% token savings** on dev operations. The discipline overlay works without it; RTK is purely an optimization.
+
+`install-global.sh` asks if you want to install RTK at the end. Or run separately:
+
+```bash
+bash install-rtk.sh        # cargo install --git https://github.com/rtk-ai/rtk + rtk init -g
+# or:
+.\install-rtk.ps1
+```
+
+Requires `cargo` (Rust toolchain — install from https://rustup.rs if you don't have it).
+
+The script:
+1. Checks if the **correct** `rtk` is already installed (there's a name collision with a Rust Type Kit crate of the same name on crates.io).
+2. Installs from `rtk-ai/rtk` via cargo if not present (falls back to the official `curl | sh` installer if cargo isn't available).
+3. Runs `rtk init -g --auto-patch --hook-only` to wire the `PreToolUse:Bash` hook into `~/.claude/settings.json` non-destructively.
+4. Verifies via `rtk gain`.
 
 ### Validate after install
 
@@ -113,8 +133,10 @@ claude-discipline-template/
 ├── README.md                          ← this file
 ├── LICENSE                            ← MIT
 ├── .gitignore
-├── install-global.sh                  ← installs Path 1 (Linux/macOS/Git-Bash)
-├── install-global.ps1                 ← installs Path 1 (PowerShell)
+├── install-global.sh                  ← installs Path 1 (Linux/macOS/Git-Bash); offers RTK at end
+├── install-global.ps1                 ← installs Path 1 (PowerShell); offers RTK at end
+├── install-rtk.sh                     ← standalone RTK installer (cargo install + rtk init)
+├── install-rtk.ps1                    ← standalone RTK installer (PowerShell)
 ├── .claude-plugin/
 │   └── marketplace.json               ← declares the "bootstrap" plugin at plugins/bootstrap/
 ├── plugins/
@@ -138,8 +160,8 @@ claude-discipline-template/
 
 If a teammate is starting fresh:
 
-1. Run `install-global.sh` to get the universal hooks + CLAUDE.md.
-2. Install the `bootstrap` plugin.
+1. Run `install-global.sh` (it'll also offer to install RTK at the end).
+2. Install the `bootstrap` plugin: `/plugin marketplace add https://github.com/aleburrascano/claude-discipline-template` then `/plugin install bootstrap@claude-discipline`.
 3. For each new project: `cd <empty-dir> && /bootstrap-project`.
 
 After they're set up, the discipline applies automatically — hooks fire, skills auto-suggest, citations are enforced.
