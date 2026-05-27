@@ -1,0 +1,15 @@
+# Template-repo's own gitignore (not the template/'s — that one's at template/.gitignore)
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Logs
+*.log
